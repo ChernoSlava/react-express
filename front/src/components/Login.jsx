@@ -9,8 +9,9 @@ export function Login() {
     try {
       const response = await axios.post('http://localhost:3001/login', { username, password });
       const token = response.data.token;
-
-      // Сохранение токена в localStorage или в состоянии приложения
+  
+      // Сохранение токена в localStorage
+      localStorage.setItem('token', token);
       console.log('Token:', token);
     } catch (error) {
       console.error('Login failed:', error.response.data.error);

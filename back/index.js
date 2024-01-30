@@ -1,70 +1,44 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+dotenv.config();
+const router = require('./routes/index');
+const User = require('./models/user');
+
 
 const app = express();
 const port = 3001;
 
+mongoose.connection.close();
+
+const dbUri = `mongodb://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@localhost:27017/${process.env.MONGODB_DATABASE}`;
+console.log(dbUri);
+mongoose.connect(dbUri);
+
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', () => {
+  console.log('Connected to MongoDB');
+});
+
+
 app.use(cors());
 app.use(bodyParser.json());
-const data = {
-  "user": {
-    "id": 123,
-    "username": "john_doe",
-    "email": "john.doe@example.com",
-    "full_name": "John Doe"
-  },
-  "products": [
-    {
-      "id": 1,
-      "name": "Product A",
-      "price": 19.99
-    },
-    {
-      "id": 2,
-      "name": "Product B",
-      "price": 29.99
-    },
-    {
-      "id": 3,
-      "name": "Product C",
-      "price": 39.99
-    }
-  ],
-  "message": "Привет, это тестовый JSON! Наслаждайтесь использованием."
-};
 
-const secretKey = 'yourSecretKey'; // Замените на свой секретный ключ
+app.use(router);
+
 app.get('/', (req, res) => {
-  res.json(data);
-});
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-
-  // Проверка учетных данных (пример, вы можете использовать базу данных)
-  if (username === 'slava' && password === '1234') {
-    const token = jwt.sign({ username }, secretKey, { expiresIn: '1h' });
-    res.json({ token });
-  } else {
-    res.status(401).json({ error: 'Invalid credentials' });
-  }
-});
-app.post('/register', async (req, res) => {
-  const { username, password } = req.body;
-
-  // Проверка, что пользователь с таким именем пользователя не существует (в реальном приложении используйте базу данных)
-  if (username === 'user') {
-    return res.status(409).json({ error: 'Username is already taken' });
-  }
-
-  // Хеширование пароля перед сохранением (используйте bcrypt)
-  // В реальном приложении, пароли следует хранить в хешированном виде, не в чистом
-  const hashedPassword = password; // Замените на хешированный пароль
-
-  // Сохранение информации о новом пользователе (в реальном приложении используйте базу данных)
-  console.log('New user registered:', { username, hashedPassword });
-  res.json({ message: 'Registration successful' });
+  res.json(
+    {
+    "user": {
+      "id": 123,
+      "username": "john_doe",
+      "email": "john.doe@example.com",
+      "full_name": "John Doe"
+    }
+  });
 });
 
 app.listen(port, () => {
